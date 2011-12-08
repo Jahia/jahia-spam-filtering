@@ -1,0 +1,1 @@
+[consequence][]Check content of the {node} for spam=spamFilteringService.checkForSpam({node}, drools);

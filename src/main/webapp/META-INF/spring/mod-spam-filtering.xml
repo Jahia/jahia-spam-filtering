@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean class="org.jahia.services.content.rules.ModuleGlobalObject">
+        <property name="globalRulesObject">
+            <map>
+                <entry key="spamFilteringService">
+                    <bean
+                        class="org.jahia.modules.spamfiltering.rules.SpamFilteringRuleService">
+                        <property name="spamFilteringService" ref="AkismetSpamFilteringService" />
+                    </bean>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="AkismetSpamFilteringService" class="org.jahia.modules.spamfiltering.akismet.AkismetService">
+        <property name="apiKey">
+            <bean class="org.jahia.utils.EncryptionUtils$EncryptedPasswordFactoryBean">
+                <property name="password" value="kaP5+N/UcZ66cQK937+4EZPncOHYh8xa" />
+            </bean>
+        </property>
+        <property name="httpClientService" ref="HttpClientService"/>
+    </bean>
+
+    <bean class="org.jahia.services.render.filter.WrapperFilter">
+        <property name="priority" value="41" />
+        <property name="description" value="Filter that adds a warning for the content that was detected as a possible spam."/>
+        <property name="wrapper" value="spam"/>
+        <property name="applyOnModes" value="live" />
+        <property name="applyOnNodeTypes" value="jmix:spamFilteringSpamDetected"/>
+        <property name="skipOnConfiguration" value="include,wrapper" />
+        <property name="skipOnAjaxRequest" value="true" />
+    </bean>
+</beans>

@@ -1,0 +1,23 @@
+###############################################################################
+package org.jahia.modules.spamfiltering.rules
+
+#list any import classes here.
+import org.jahia.services.content.rules.*
+import org.slf4j.Logger
+
+expander rules.dsl
+
+#declare any global variables here
+global User user
+global Service service
+global Logger logger
+global SpamFilteringRuleService spamFilteringService
+###############################################################################
+
+rule "A post is created - apply spam filtering"
+    when
+		A new node is created
+            - it has the type jnt:post
+    then
+        Check content of the node for spam
+end
