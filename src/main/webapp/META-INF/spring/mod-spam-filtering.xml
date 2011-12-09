@@ -7,8 +7,7 @@
         <property name="globalRulesObject">
             <map>
                 <entry key="spamFilteringService">
-                    <bean
-                        class="org.jahia.modules.spamfiltering.rules.SpamFilteringRuleService">
+                    <bean class="org.jahia.modules.spamfiltering.rules.SpamFilteringRuleService">
                         <property name="spamFilteringService" ref="AkismetSpamFilteringService" />
                     </bean>
                 </entry>
