@@ -97,18 +97,16 @@ public class SpamFilteringRuleService {
                 isSpam = spamFilteringService.isSpam(text, getOptions(node));
             }
 
-            if (node.isNodeType(SPAM_DETECTED_MIXIN)) {
-                if (!isSpam) {
-                    // no longer spam -> remove mixin
-                    node.getSession().checkout(node);
-                    node.removeMixin(SPAM_DETECTED_MIXIN);
-                }
-            } else {
-                if (isSpam) {
+            if (isSpam) {
+                if (!node.isNodeType(SPAM_DETECTED_MIXIN)) {
                     // is detected as spam -> add mixin
                     node.getSession().checkout(node);
                     node.addMixin(SPAM_DETECTED_MIXIN);
                 }
+            } else if (node.isNodeType(SPAM_DETECTED_MIXIN)) {
+                // no longer spam -> remove mixin
+                node.getSession().checkout(node);
+                node.removeMixin(SPAM_DETECTED_MIXIN);
             }
             logger.info("Content of the node {} is{} detected as spam", node.getPath(),
                     !isSpam ? " not" : "");
