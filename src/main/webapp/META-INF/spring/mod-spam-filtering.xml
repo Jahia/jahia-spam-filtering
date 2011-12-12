@@ -16,21 +16,17 @@
     </bean>
 
     <bean id="AkismetSpamFilteringService" class="org.jahia.modules.spamfiltering.akismet.AkismetService">
-        <property name="apiKey">
-            <bean class="org.jahia.utils.EncryptionUtils$EncryptedPasswordFactoryBean">
-                <property name="password" value="kaP5+N/UcZ66cQK937+4EZPncOHYh8xa" />
-            </bean>
-        </property>
+        <property name="apiKey" value="provide-valid-api-key-here"/>
         <property name="httpClientService" ref="HttpClientService"/>
     </bean>
 
     <bean class="org.jahia.services.render.filter.WrapperFilter">
         <property name="priority" value="41" />
-        <property name="description" value="Filter that adds a warning for the content that was detected as a possible spam."/>
         <property name="wrapper" value="spam"/>
         <property name="applyOnModes" value="live" />
         <property name="applyOnNodeTypes" value="jmix:spamFilteringSpamDetected"/>
         <property name="skipOnConfiguration" value="include,wrapper" />
         <property name="skipOnAjaxRequest" value="true" />
+        <property name="renderService" ref="RenderService"/>
     </bean>
 </beans>
