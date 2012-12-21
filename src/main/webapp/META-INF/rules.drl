@@ -15,6 +15,7 @@ global SpamFilteringRuleService spamFilteringService
 ###############################################################################
 
 rule "A post is created - apply spam filtering"
+    salience 100
     when
 		A new node is created
             - it has the type jnt:post
