@@ -47,7 +47,7 @@
     </parent>
     <artifactId>spam-filtering</artifactId>
     <name>Jahia Spam Filtering</name>
-    <version>1.0</version>    
+    <version>1.1-SNAPSHOT</version>    
     <packaging>war</packaging>
     <description>Jahia automatic spam filtering for blogs, forums, wikis etc.</description>
 
