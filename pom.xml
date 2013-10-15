@@ -52,9 +52,9 @@
     <description>Jahia automatic spam filtering for blogs, forums, wikis etc.</description>
 
     <scm>
-        <connection>scm:git:git@github.com:shyrkov/jahia-spam-filtering.git</connection>
-        <url>scm:git:git@github.com:shyrkov/jahia-spam-filtering.git</url>
-        <developerConnection>scm:git:git@github.com:shyrkov/jahia-spam-filtering.git</developerConnection>
+        <connection>scm:git:git@github.com:Jahia/jahia-spam-filtering.git</connection>
+        <url>scm:git:git@github.com:Jahia/jahia-spam-filtering.git</url>
+        <developerConnection>scm:git:git@github.com:Jahia/jahia-spam-filtering.git</developerConnection>
     </scm>
         
     <repositories>
@@ -71,6 +71,33 @@
             </snapshots>
         </repository>
     </repositories>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    
+    <distributionManagement>
+        <repository>
+            <id>jahia-community-releases</id>
+            <url>https://devtools.jahia.com/nexus/content/repositories/jahia-community-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>jahia-community-snapshots</id>
+            <url>https://devtools.jahia.com/nexus/content/repositories/jahia-community-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
     
     <build>
         <plugins>
