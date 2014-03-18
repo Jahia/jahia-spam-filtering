@@ -20,5 +20,5 @@ rule "A post is created - apply spam filtering"
 		A new node is created
             - it has the type jnt:post
     then
-        Check content of the node for spam
+        Check content of the node for spam and lock account if more than 3 spams are sent
 end

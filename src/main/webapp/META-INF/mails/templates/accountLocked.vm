@@ -1,0 +1,30 @@
+#* @vtlvariable name="bundle" type="java.util.ResourceBundle" *#
+#* @vtlvariable name="httpServletRequest" type="java.util.ResourceBundle" *#
+<html>
+<body>
+<h3>${esc.html($bundle.getString("spamFiltering.mail.accountLocked"))}</h3>
+<p>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.post.created.on"))}:</b> ${esc.html($date.format("full","short",$submissionDate,$locale))}<br>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.by"))}: </b>${esc.html($submitter.getName())}<br>
+#if ($httpServletRequest)
+    <b>${esc.html($bundle.getString("spamFiltering.mail.ip"))}: </b>${esc.html($httpServletRequest.getRemoteAddr())}<br>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.userAgent"))}: </b>${esc.html($httpServletRequest.getHeader("User-Agent"))}<br>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.referrer"))}: </b>${esc.html($httpServletRequest.getHeader("Referer"))}<br>
+#end
+    <b>${esc.html($bundle.getString("spamFiltering.mail.topic"))}:</b> #if($ParentSpamNode.hasProperty("jcr:title")) ${esc.html($ParentSpamNode.getProperty("jcr:title").string)}#{else}${ParentSpamNode.getName()}#end<br>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.thread"))}:</b>  #if($spamNode.hasProperty("topicSubject")) ${esc.html($spamNode.getProperty("topicSubject").string)}#{else}${spamNode.getName()}#end<br>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.title"))}:</b>  #if($spamNewNode.hasProperty("jcr:title")) ${esc.html($spamNewNode.getProperty("jcr:title").string)}#{else}${spamNewNode.getName()}#end<br>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.url"))}:</b> <a href="${spamURL}">${spamURL}</a>
+</p>
+<p>
+    <b>${esc.html($bundle.getString("spamFiltering.mail.content"))}:</b>
+</p>
+<p>
+#if ($spamNewNode.hasProperty("content"))
+    ${spamNewNode.getProperty("content").string}
+#else
+    ${esc.html($bundle.getString("spamFiltering.mail.empty.content"))}
+#end
+</p>
+</body>
+</html>

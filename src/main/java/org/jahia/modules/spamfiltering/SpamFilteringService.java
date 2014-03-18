@@ -39,6 +39,9 @@
  */
 package org.jahia.modules.spamfiltering;
 
+import org.jahia.services.content.JCRNodeWrapper;
+
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -48,6 +51,6 @@ import java.util.Map;
  */
 public interface SpamFilteringService {
 
-    boolean isSpam(String content, Map<String, String> options) throws Exception;
+    boolean isSpam(String content, JCRNodeWrapper node, HttpServletRequest httpServletRequest) throws Exception;
 
 }
