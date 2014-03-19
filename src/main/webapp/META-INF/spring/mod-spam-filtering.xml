@@ -26,7 +26,7 @@
     <bean id="AkismetSpamFilteringService" class="org.jahia.modules.spamfiltering.akismet.AkismetService">
         <property name="apiKey">
             <bean class="org.jahia.utils.EncryptionUtils$EncryptedPasswordFactoryBean">
-                <property name="password" value="${akismetPassword:kaP5+N/UcZ66cQK937+4EZPncOHYh8xa}"/>
+                <property name="password" value="${akismetEncryptedApiKey:kaP5+N/UcZ66cQK937+4EZPncOHYh8xa}"/>
             </bean>
         </property>
         <property name="httpClientService" ref="HttpClientService"/>
