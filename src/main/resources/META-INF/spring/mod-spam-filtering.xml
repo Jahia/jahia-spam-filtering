@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean class="org.jahia.services.content.rules.ModuleGlobalObject">
+        <property name="globalRulesObject">
+            <map>
+                <entry key="spamFilteringService">
+                    <bean class="org.jahia.modules.spamfiltering.rules.SpamFilteringRuleService">
+                        <property name="spamFilteringService" ref="AkismetSpamFilteringService"/>
+                        <property name="sendSpamNotificationEmails" value="${spamMailNotificationActive:true}" />
+                        <property name="mailService" ref="MailService"/>
+                        <property name="templatePath"
+                                  value="${spamMailNotificationTemplatePath:/META-INF/mails/templates/accountLocked.vm}"/>
+                        <property name="emailFrom" value="${spamMailNotificationFrom:info@jahia.com}"/>
+                        <property name="emailTo" value="${spamAdministratorEmail:forum-spam@jahia.com}"/>
+                        <property name="spamFilterHostUrlPart" value="${spamFilterHostUrlPart:http://localhost:8080}"/>
+                        <property name="spamFilter" ref="spamFilter" />
+                    </bean>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="AkismetSpamFilteringService" class="org.jahia.modules.spamfiltering.akismet.AkismetService">
+        <property name="apiKey">
+            <bean class="org.jahia.utils.EncryptionUtils$EncryptedPasswordFactoryBean">
+                <property name="password" value="${akismetEncryptedApiKey:kaP5+N/UcZ66cQK937+4EZPncOHYh8xa}"/>
+            </bean>
+        </property>
+        <property name="httpClientService" ref="HttpClientService"/>
+    </bean>
+
+    <bean class="org.jahia.services.render.filter.WrapperFilter">
+        <property name="priority" value="41"/>
+        <property name="description"
+                  value="Filter that adds a warning for the content that was detected as a possible spam."/>
+        <property name="wrapper" value="spam"/>
+        <property name="applyOnModes" value="live"/>
+        <property name="applyOnNodeTypes" value="jmix:spamFilteringSpamDetected"/>
+        <property name="skipOnConfiguration" value="include,wrapper"/>
+        <property name="skipOnAjaxRequest" value="true"/>
+    </bean>
+
+    <bean id="spamFilter" class="org.jahia.modules.spamfiltering.filters.SpamFilter">
+        <property name="priority" value="-10"/>
+        <property name="description"
+                  value="Filter that makes it possible to access the request and kill spam sessions"/>
+        <property name="applyOnModes" value="live"/>
+        <property name="applyOnNodeTypes" value="nt:base"/>
+        <property name="applyOnConfigurations" value="page" />
+        <property name="maxSessionsToKill" value="${spamMaxSessionsToKill:20}" />
+    </bean>
+
+</beans>
