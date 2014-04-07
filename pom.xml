@@ -79,7 +79,7 @@
     </parent>
     <artifactId>spam-filtering</artifactId>
     <name>Jahia Spam Filtering</name>
-    <version>2.0.0</version>
+    <version>2.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Jahia automatic spam filtering for blogs, forums, wikis etc.</description>
     <scm>
