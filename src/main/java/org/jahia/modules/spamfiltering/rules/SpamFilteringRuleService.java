@@ -75,6 +75,7 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -85,6 +86,7 @@ import org.drools.core.spi.KnowledgeHelper;
 import org.jahia.bin.Jahia;
 import org.jahia.modules.spamfiltering.SpamFilteringService;
 import org.jahia.modules.spamfiltering.filters.SpamFilter;
+import org.jahia.modules.spamfiltering.listeners.SpamServletRequestListener;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRPropertyWrapper;
 import org.jahia.services.content.nodetypes.ExtendedPropertyDefinition;
@@ -149,10 +151,24 @@ public class SpamFilteringRuleService {
             if (httpServletRequest == null) {
                 // we didn't manage to get the request from our own filter, try to access it through Spring MVC's
                 // framework
-                RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
-                if (requestAttributes != null && requestAttributes instanceof ServletRequestAttributes) {
-                    ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) requestAttributes;
-                    httpServletRequest = servletRequestAttributes.getRequest();
+                try {
+                    RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
+                    if (requestAttributes != null && requestAttributes instanceof ServletRequestAttributes) {
+                        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) requestAttributes;
+                        httpServletRequest = servletRequestAttributes.getRequest();
+                    }
+                } catch (IllegalStateException ise) {
+                    logger.warn("Couldn't retrieve request from Spring MVC controller : " + ise.getMessage());
+                }
+                if (httpServletRequest == null ) {
+                    // we could reach this stage if the incoming request is coming from a REST API call or another
+                    // direct call to OSGi's HttpService.
+                    if (SpamServletRequestListener.getServletRequestEvent() != null) {
+                        ServletRequest servletRequest = SpamServletRequestListener.getServletRequestEvent().getServletRequest();
+                        if (servletRequest instanceof HttpServletRequest) {
+                            httpServletRequest = (HttpServletRequest) servletRequest;
+                        }
+                    }
                 }
             }
 
@@ -172,7 +188,7 @@ public class SpamFilteringRuleService {
                 if (maxSpamCount != null && httpServletRequest != null) {
                     HttpSession httpSession = httpServletRequest.getSession(false);
                     JahiaUser jahiaUser = user.getJahiaUser();
-                    if (httpSession != null && !"guest".equals(jahiaUser.getName())) {
+                    if (httpSession != null && !"guest".equals(jahiaUser.getName()) && !jahiaUser.isRoot()) {
                         String spamSessionsValue = jahiaUser.getProperty(SPAM_SESSIONS_PROPERTY_NAME);
                         List<String> spamSessions = new ArrayList<String>();
                         if (spamSessionsValue != null) {

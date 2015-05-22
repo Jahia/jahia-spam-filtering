@@ -115,7 +115,11 @@ public class AkismetService implements SpamFilteringService {
     private boolean isSpam(String content, Map<String, String> options) throws Exception {
         Map<String, String> parameters = new HashMap<String, String>(DEF_PARAMS);
         if (options != null && !options.isEmpty()) {
-            parameters.putAll(options);            
+            for (Map.Entry<String,String> option : options.entrySet()) {
+                if (option.getKey() != null && option.getValue() != null) {
+                    parameters.put(option.getKey(), option.getValue());
+                }
+            }
         }
         parameters.put("comment_content", content);
 
