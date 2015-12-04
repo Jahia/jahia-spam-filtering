@@ -37,59 +37,59 @@ Installation
 
 Simply deploy the module and then modify your jahia.properties file with the following properties:
 
-######################################################################
-### Spam filtering properties  #######################################
-######################################################################
-# the following setting controls whether the spam lock account notifications should be sent or not
-spamMailNotificationActive=true
-# the spamMailNotificationTemplatePath point to a location inside the module where the mail template
-# (using the Velocity template language) is located. Usually you do not need to modify this unless
-# you want to copy the original template to make your own version and point to it.
-spamMailNotificationTemplatePath=/META-INF/mails/templates/accountLocked.vm
-# The spamAdministratorEmail is the destination email account that will
-# be notified when accounts are locked
-spamAdministratorEmail=info@jahia.com
-# The spamMailNotificationFrom is the sender of the locked account
-# email notifications
-spamMailNotificationFrom=forum-spam@jahia.com
-# The spamFilterHostUrlPart is used to generate absolute URLs to point to the content that contains
-# the spam. You should point this to the real server you are using.
-spamFilterHostUrlPart=http://localhost:8080
+    ######################################################################
+    ### Spam filtering properties  #######################################
+    ######################################################################
+    # the following setting controls whether the spam lock account notifications should be sent or not
+    spamMailNotificationActive=true
+    # the spamMailNotificationTemplatePath point to a location inside the module where the mail template
+    # (using the Velocity template language) is located. Usually you do not need to modify this unless
+    # you want to copy the original template to make your own version and point to it.
+    spamMailNotificationTemplatePath=/META-INF/mails/templates/accountLocked.vm
+    # The spamAdministratorEmail is the destination email account that will
+    # be notified when accounts are locked
+    spamAdministratorEmail=info@jahia.com
+    # The spamMailNotificationFrom is the sender of the locked account
+    # email notifications
+    spamMailNotificationFrom=forum-spam@jahia.com
+    # The spamFilterHostUrlPart is used to generate absolute URLs to point to the content that contains
+    # the spam. You should point this to the real server you are using.
+    spamFilterHostUrlPart=http://localhost:8080
 
-# Once you get your API key from Akismet, you will
-# need to encrypt it to store it safely in this value in the jahia.properties file.
-# To encrypt it, go to http://localhost:8080/tools/groovyConsole.jsp and enter the following
-# command:
-#
-#     out.print(org.jahia.utils.EncryptionUtils.passwordBaseEncrypt("YOUR_API_KEY"))
-#
-#  This will print out the encrypted value you can then use.
-#
-#
-akismetEncryptedApiKey=YOUR_ENCRYPTED_API_KEY
+    # Once you get your API key from Akismet, you will
+    # need to encrypt it to store it safely in this value in the jahia.properties file.
+    # To encrypt it, go to http://localhost:8080/tools/groovyConsole.jsp and enter the following
+    # command:
+    #
+    #     out.print(org.jahia.utils.EncryptionUtils.passwordBaseEncrypt("YOUR_API_KEY"))
+    #
+    #  This will print out the encrypted value you can then use.
+    #
+    #
+    akismetEncryptedApiKey=YOUR_ENCRYPTED_API_KEY
 
-# The spamMaxSessionsToKill controls the maximum size of the sessions to kill hash map.
-# Normally you don't need to change this, but this is just here for information on the
-# default value.
-spamMaxSessionsToKill=20
+    # The spamMaxSessionsToKill controls the maximum size of the sessions to kill hash map.
+    # Normally you don't need to change this, but this is just here for information on the
+    # default value.
+    spamMaxSessionsToKill=20
 
-# For non-authenticated users, the spam filtering system will blacklist IP addresses that have
-# sent a number of spams (defaults to 3 in rules.drl). The IP blacklisting is temporary and is
-# controlled by a timeout value in milliseconds (defaults to 24h)
-spamHostBlacklistingTimeout=86400000
-# The following setting is the location of the Velocity template to format the email sent to
-# administrators when an IP is blacklisted
-spamMailHostBlacklistedNotificationTemplatePath=/META-INF/mails/templates/hostBlacklisted.vm
-# By default, when an IP is blacklisted, only *write* operations on the URLs controlled
-# by the spamBlacklistUrlMappings setting are prevented. If the following setting is set to
-# false then ALL HTTP requests to those mappings will be forbidden.
-spamAllowReadMethodsWhenBlacklisted=true
-# The following setting controls a white list of hosts/IPs that will always be allowed
-spamWhitelistedHosts=127.0.0.1,localhost
-# The following URL mappings are the patterns that will be used to filter the blacklisted
-# requests. Note that these mappings are called before URL rewriting, so make sure they
-# are properly setup.
-spamBlacklistUrlMappings=/cms/*,*.do
+    # For non-authenticated users, the spam filtering system will blacklist IP addresses that have
+    # sent a number of spams (defaults to 3 in rules.drl). The IP blacklisting is temporary and is
+    # controlled by a timeout value in milliseconds (defaults to 24h)
+    spamHostBlacklistingTimeout=86400000
+    # The following setting is the location of the Velocity template to format the email sent to
+    # administrators when an IP is blacklisted
+    spamMailHostBlacklistedNotificationTemplatePath=/META-INF/mails/templates/hostBlacklisted.vm
+    # By default, when an IP is blacklisted, only *write* operations on the URLs controlled
+    # by the spamBlacklistUrlMappings setting are prevented. If the following setting is set to
+    # false then ALL HTTP requests to those mappings will be forbidden.
+    spamAllowReadMethodsWhenBlacklisted=true
+    # The following setting controls a white list of hosts/IPs that will always be allowed
+    spamWhitelistedHosts=127.0.0.1,localhost
+    # The following URL mappings are the patterns that will be used to filter the blacklisted
+    # requests. Note that these mappings are called before URL rewriting, so make sure they
+    # are properly setup.
+    spamBlacklistUrlMappings=/cms/*,*.do
 
 REST API
 --------
