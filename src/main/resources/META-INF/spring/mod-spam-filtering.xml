@@ -62,7 +62,7 @@
     </bean>
 
     <bean id="spamServletFilter" class="org.jahia.modules.spamfiltering.filters.SpamServletFilter">
-        <property name="urlPatterns" value="/cms/*,/sites/*"/>
+        <property name="urlPatterns" value="${spamBlacklistUrlMappings:/cms/*,*.do}"/>
         <property name="matchAllUrls" value="false"/>
         <property name="spamFilteringRuleService" ref="spamFilteringRuleService"/>
     </bean>

@@ -61,3 +61,9 @@ akismetEncryptedApiKey=YOUR_ENCRYPTED_API_KEY
 # Normally you don't need to change this, but this is just here for information on the
 # default value.
 spamMaxSessionsToKill=20
+
+spamHostBlacklistingTimeout=86400000
+spamMailHostBlacklistedNotificationTemplatePath=/META-INF/mails/templates/hostBlacklisted.vm
+spamAllowReadMethodsWhenBlacklisted=true
+spamWhitelistedHosts=127.0.0.1,localhost
+spamBlacklistUrlMappings=/cms/*,*.do
