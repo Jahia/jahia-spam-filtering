@@ -8,6 +8,17 @@ Licensing
 ---------
 See LICENSE file
 
+Features
+--------
+- Integration with the Akismet spam filtering service to detect spam inside of submitted content
+- Email notification to administrators when spam is detected
+- Spam is automatically filtered so that only moderators may see it
+- For authenticated users, if they send spam regularly and a certain limit is reached, their
+  account will be automatically locked
+- For non-authenticated users, if they send spam regularly and a certain limit is reached, their
+  host/IP address will be blacklisted temporarily and the administrators will be notified.
+- A REST API allows administrators to view or purge the host blacklist.
+
 Disclaimer
 ----------
 This module was developed by Sergiy Shyrkov and is distributed in the hope that
@@ -19,7 +30,7 @@ and run on a production instance of Digital Factory.
 
 Requirements
 ------------
-Module is targeted to be deployed to Digital Factory version 7.0.0.0 or later.
+Module is targeted to be deployed to Digital Factory version 7.1.0.0 or later.
 
 Installation
 ------------
@@ -62,8 +73,30 @@ akismetEncryptedApiKey=YOUR_ENCRYPTED_API_KEY
 # default value.
 spamMaxSessionsToKill=20
 
+# For non-authenticated users, the spam filtering system will blacklist IP addresses that have
+# sent a number of spams (defaults to 3 in rules.drl). The IP blacklisting is temporary and is
+# controlled by a timeout value in milliseconds (defaults to 24h)
 spamHostBlacklistingTimeout=86400000
+# The following setting is the location of the Velocity template to format the email sent to
+# administrators when an IP is blacklisted
 spamMailHostBlacklistedNotificationTemplatePath=/META-INF/mails/templates/hostBlacklisted.vm
+# By default, when an IP is blacklisted, only *write* operations on the URLs controlled
+# by the spamBlacklistUrlMappings setting are prevented. If the following setting is set to
+# false then ALL HTTP requests to those mappings will be forbidden.
 spamAllowReadMethodsWhenBlacklisted=true
+# The following setting controls a white list of hosts/IPs that will always be allowed
 spamWhitelistedHosts=127.0.0.1,localhost
+# The following URL mappings are the patterns that will be used to filter the blacklisted
+# requests. Note that these mappings are called before URL rewriting, so make sure they
+# are properly setup.
 spamBlacklistUrlMappings=/cms/*,*.do
+
+REST API
+--------
+
+A new REST API has been introduced to view/purge the blacklisting of hosts/IPs in the case
+of unauthenticated users. In the source code, in src/main/bin you will find some scripts
+that call the REST API to retrieve or purge the list of blacklisted hosts.
+
+You should copy these scripts to a work location and then edit the common.sh script to
+point it to your configuration and administration credentials.
