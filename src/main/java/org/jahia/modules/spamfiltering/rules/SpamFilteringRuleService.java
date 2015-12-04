@@ -69,23 +69,14 @@
  */
 package org.jahia.modules.spamfiltering.rules;
 
-import java.util.*;
-
-import javax.jcr.PropertyIterator;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.EscapeTool;
 import org.drools.core.spi.KnowledgeHelper;
 import org.jahia.bin.Jahia;
+import org.jahia.modules.spamfiltering.HostStats;
 import org.jahia.modules.spamfiltering.SpamFilteringService;
-import org.jahia.modules.spamfiltering.filters.SpamFilter;
+import org.jahia.modules.spamfiltering.filters.SpamRenderFilter;
 import org.jahia.modules.spamfiltering.listeners.SpamServletRequestListener;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRPropertyWrapper;
@@ -102,6 +93,15 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.*;
+
 /**
  * Service class for checking content and applying spam filtering.
  * 
@@ -109,22 +109,100 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  */
 public class SpamFilteringRuleService {
 
-    private static Logger logger = LoggerFactory.getLogger(SpamFilteringRuleService.class);
-
     private static final String SPAM_DETECTED_MIXIN = "jmix:spamFilteringSpamDetected";
-
     private static final String SPAM_SESSIONS_PROPERTY_NAME = "org.jahia.modules.spamfiltering.spamSessions";
+    private static Logger logger = LoggerFactory.getLogger(SpamFilteringRuleService.class);
+    private static SpamFilteringRuleService instance = null;
 
     private SpamFilteringService spamFilteringService;
 
     private boolean sendSpamNotificationEmails = true;
     private MailService mailService;
-    private SpamFilter spamFilter;
+    private SpamRenderFilter spamRenderFilter;
 
-    private String templatePath;
+    private String accountLockedTemplatePath;
     private String emailFrom;
     private String emailTo;
     private String spamFilterHostUrlPart;
+
+    private long defaultBlacklistingTimeout = 24 * 60 * 60 * 1000; // 24 hours
+
+    private Map<String, HostStats> blacklistedHosts = new LinkedHashMap<String, HostStats>();
+    private String hostBlacklistedTemplatePath;
+    private boolean allowReadingWhenBlacklisted = true;
+    private String whitelistedHosts = "127.0.0.1,localhost";
+
+    public SpamFilteringRuleService() {
+        instance = this;
+    }
+
+    public static SpamFilteringRuleService getInstance() {
+        return instance;
+    }
+
+    public void setSpamFilteringService(SpamFilteringService spamFilteringService) {
+        this.spamFilteringService = spamFilteringService;
+    }
+
+    public void setMailService(MailService mailService) {
+        this.mailService = mailService;
+    }
+
+    public void setSendSpamNotificationEmails(boolean sendSpamNotificationEmails) {
+        this.sendSpamNotificationEmails = sendSpamNotificationEmails;
+    }
+
+    public void setAccountLockedTemplatePath(String accountLockedTemplatePath) {
+        this.accountLockedTemplatePath = accountLockedTemplatePath;
+    }
+
+    public void setEmailFrom(String emailFrom) {
+        this.emailFrom = emailFrom;
+    }
+
+    public void setEmailTo(String emailTo) {
+        this.emailTo = emailTo;
+    }
+
+    public void setSpamFilterHostUrlPart(String spamFilterHostUrlPart) {
+        this.spamFilterHostUrlPart = spamFilterHostUrlPart;
+    }
+
+    public void setSpamRenderFilter(SpamRenderFilter spamRenderFilter) {
+        this.spamRenderFilter = spamRenderFilter;
+    }
+
+    public Map<String, HostStats> getBlacklistedHosts() {
+        return blacklistedHosts;
+    }
+
+    public void setBlacklistedHosts(Map<String, HostStats> blacklistedHosts) {
+        this.blacklistedHosts = blacklistedHosts;
+    }
+
+    public void setDefaultBlacklistingTimeout(long defaultBlacklistingTimeout) {
+        this.defaultBlacklistingTimeout = defaultBlacklistingTimeout;
+    }
+
+    public void setHostBlacklistedTemplatePath(String hostBlacklistedTemplatePath) {
+        this.hostBlacklistedTemplatePath = hostBlacklistedTemplatePath;
+    }
+
+    public boolean isAllowReadingWhenBlacklisted() {
+        return allowReadingWhenBlacklisted;
+    }
+
+    public void setAllowReadingWhenBlacklisted(boolean allowReadingWhenBlacklisted) {
+        this.allowReadingWhenBlacklisted = allowReadingWhenBlacklisted;
+    }
+
+    public String getWhitelistedHosts() {
+        return whitelistedHosts;
+    }
+
+    public void setWhitelistedHosts(String whitelistedHosts) {
+        this.whitelistedHosts = whitelistedHosts;
+    }
 
     /**
      * Verifies the content of the node with anti-spam service and applies spam filtering (by assigning a special mixin).
@@ -146,7 +224,7 @@ public class SpamFilteringRuleService {
         try {
             User user = (User) drools.getWorkingMemory().getGlobal("user");
 
-            HttpServletRequest httpServletRequest = spamFilter.getHttpServletRequest();
+            HttpServletRequest httpServletRequest = spamRenderFilter.getHttpServletRequest();
 
             if (httpServletRequest == null) {
                 // we didn't manage to get the request from our own filter, try to access it through Spring MVC's
@@ -200,7 +278,7 @@ public class SpamFilteringRuleService {
                         if (spamSessions.size() >= maxSpamCount) {
                             logger.info("Maximum number of spam count reached (" + maxSpamCount + "), locking user account and killing session...");
                             logger.info("Marking session " + httpSession.getId() + " as invalid and will be killed on next access.");
-                            spamFilter.addSessionToKill(httpSession.getId());
+                            spamRenderFilter.addSessionToKill(httpSession.getId());
                             // add code to lock account
                             logger.info("Locking account " + jahiaUser + "...");
                             jahiaUser.setProperty("j:accountLocked", "true");
@@ -220,6 +298,43 @@ public class SpamFilteringRuleService {
                             jahiaUser.removeProperty(SPAM_SESSIONS_PROPERTY_NAME);
                         }
 
+                    } else {
+                        // let's use IP-based blocking if we cannot use authenticated sessions
+                        String remoteHost = httpServletRequest.getRemoteHost();
+                        if (remoteHost == null) {
+                            remoteHost = httpServletRequest.getRemoteAddr();
+                        }
+                        if (remoteHost != null) {
+                            if (whitelistedHosts.contains(remoteHost)) {
+                                logger.debug("Host {} is whitelisted, bypassing blacklisting mechanism.", remoteHost);
+                            } else {
+                                HostStats hostStats = blacklistedHosts.get(remoteHost);
+                                if (hostStats == null) {
+                                    hostStats = new HostStats(remoteHost, new Date(), 0, false, 0);
+                                }
+                                int hostSpamCount = hostStats.getSpamCount();
+                                hostSpamCount++;
+                                hostStats.setLastPost(new Date());
+                                hostStats.setSpamCount(hostSpamCount);
+                                if (hostSpamCount >= maxSpamCount) {
+                                    // we've reached the maximum spam count trigger, let's black list the host.
+                                    logger.info("Maximum number of spam count reached (" + maxSpamCount + "), temporarily blacklisting host=" + hostStats + " and killing session...");
+                                    logger.info("Marking session " + httpSession.getId() + " as invalid and will be killed on next access.");
+                                    hostStats.setBlacklisted(true);
+                                    hostStats.setBlacklistingTimeout(System.currentTimeMillis() + defaultBlacklistingTimeout);
+                                    hostStats.setBlacklistingCount(hostStats.getBlacklistingCount() + 1);
+                                    if (sendSpamNotificationEmails) {
+                                        logger.info("Sending host blacklisting notification to administrator...");
+                                        sendHostBlacklistingNotification(node, jahiaUser, httpServletRequest, hostStats);
+                                    }
+                                } else {
+                                    logger.info("Host {} has sent {} spam messages so far.", hostStats, hostSpamCount);
+                                }
+                                blacklistedHosts.put(remoteHost, hostStats);
+                            }
+                        } else {
+                            logger.warn("Remote host couldn't be resolved, maybe there is a configuration issue ?");
+                        }
                     }
                 }
             } else if (node.isNodeType(SPAM_DETECTED_MIXIN)) {
@@ -263,8 +378,44 @@ public class SpamFilteringRuleService {
 
         try {
             bindings.put("locale", defaultLocale);
-            mailService.sendMessageWithTemplate(templatePath, bindings, administratorEmail, emailFrom, "", "", defaultLocale, "Jahia Spam Filtering");
+            mailService.sendMessageWithTemplate(accountLockedTemplatePath, bindings, administratorEmail, emailFrom, "", "", defaultLocale, "Jahia Spam Filtering");
             logger.info("Account "+jahiaUser+" locked notification sent by e-mail to " + administratorEmail + " using locale " + defaultLocale);
+        } catch (Exception e) {
+            logger.error("Couldn't sent spam account lock email notification: ", e);
+        }
+    }
+
+    private void sendHostBlacklistingNotification(JCRNodeWrapper node, JahiaUser jahiaUser, HttpServletRequest httpServletRequest, HostStats hostStats) throws RepositoryException {
+        // Prepare mail to be sent :
+        String administratorEmail = emailTo == null ? mailService.getSettings().getTo() : emailTo;
+
+        Locale defaultLocale = null;
+        if (node.getExistingLocales() != null &&
+                node.getExistingLocales().size() > 0) {
+            defaultLocale = node.getExistingLocales().get(0);
+        }
+        if (defaultLocale == null) {
+            defaultLocale = LanguageCodeConverters.languageCodeToLocale(SettingsBean.getInstance().getDefaultLanguageCode());
+        }
+
+        Map<String, Object> bindings = new HashMap<String, Object>();
+        bindings.put("spamNode", node.getParent());
+        bindings.put("spamNewNode", node);
+        bindings.put("ParentSpamNode", node.getParent().getParent());
+        bindings.put("submitter", jahiaUser);
+        if (httpServletRequest != null) {
+            bindings.put("httpServletRequest", httpServletRequest);
+        }
+        bindings.put("date", new DateTool());
+        bindings.put("esc", new EscapeTool());
+        bindings.put("submissionDate", Calendar.getInstance());
+        bindings.put("spamURL", spamFilterHostUrlPart + Jahia.getContextPath() + node.getUrl());
+        bindings.put("hostStats", hostStats);
+
+        try {
+            bindings.put("locale", defaultLocale);
+            mailService.sendMessageWithTemplate(hostBlacklistedTemplatePath, bindings, administratorEmail, emailFrom, "", "", defaultLocale, "Jahia Spam Filtering");
+            logger.info("Host " + hostStats + " blacklisting notification sent by e-mail to " + administratorEmail + " using locale " + defaultLocale);
         } catch (Exception e) {
             logger.error("Couldn't sent spam account lock email notification: ", e);
         }
@@ -303,35 +454,4 @@ public class SpamFilteringRuleService {
         return text.toString();
     }
 
-    public void setSpamFilteringService(SpamFilteringService spamFilteringService) {
-        this.spamFilteringService = spamFilteringService;
-    }
-
-    public void setMailService(MailService mailService) {
-        this.mailService = mailService;
-    }
-
-    public void setSendSpamNotificationEmails(boolean sendSpamNotificationEmails) {
-        this.sendSpamNotificationEmails = sendSpamNotificationEmails;
-    }
-
-    public void setTemplatePath(String templatePath) {
-        this.templatePath = templatePath;
-    }
-
-    public void setEmailFrom(String emailFrom) {
-        this.emailFrom = emailFrom;
-    }
-
-    public void setEmailTo(String emailTo) {
-        this.emailTo = emailTo;
-    }
-
-    public void setSpamFilterHostUrlPart(String spamFilterHostUrlPart) {
-        this.spamFilterHostUrlPart = spamFilterHostUrlPart;
-    }
-
-    public void setSpamFilter(SpamFilter spamFilter) {
-        this.spamFilter = spamFilter;
-    }
 }

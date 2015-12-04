@@ -82,9 +82,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Spam rendering filter used to kill sessions immediately once they have been flagged
  */
-public class SpamFilter extends AbstractFilter {
+public class SpamRenderFilter extends AbstractFilter {
 
-    private static Logger logger = org.slf4j.LoggerFactory.getLogger(SpamFilter.class);
+    private static Logger logger = org.slf4j.LoggerFactory.getLogger(SpamRenderFilter.class);
 
     public ConcurrentLinkedQueue<String> sessionsToKill = new ConcurrentLinkedQueue<String>();
     public ThreadLocal<HttpServletRequest> httpServletRequestThreadLocal = new ThreadLocal<HttpServletRequest>();
