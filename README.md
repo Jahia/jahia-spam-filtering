@@ -100,3 +100,24 @@ that call the REST API to retrieve or purge the list of blacklisted hosts.
 
 You should copy these scripts to a work location and then edit the common.sh script to
 point it to your configuration and administration credentials.
+
+Once it is configure you can simply use :
+
+    ./getBlacklistedHosts.sh
+    
+to retrieve a JSON object that contains the list of blacklisted hosts.
+
+You can use :
+
+    ./purgeBlacklistedHosts.sh
+    
+to purge the list of blacklisted hosts.
+
+If you prefer to use the REST API calls directly, these map to the following URLs : 
+
+    GET $SERVER_HOST:$SERVER_PORT/modules/api/spamfiltering/v1/blacklisting/hosts
+    Retrieves the list of blacklisted hosts
+    
+    DELETE $SERVER_HOST:$SERVER_PORT/modules/api/spamfiltering/v1/blacklisting/hosts
+    Purges the list of blacklisted hosts
+    
