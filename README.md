@@ -18,6 +18,9 @@ Features
 - For non-authenticated users, if they send spam regularly and a certain limit is reached, their
   host/IP address will be blacklisted temporarily and the administrators will be notified.
 - A REST API allows administrators to view or purge the host blacklist.
+- By default, if a jnt:post node is responsible for creating a jnt:topic parent node and that the 
+former contains spam, both the topic and the post will be marked as spam, making it easier to purge
+all the spam content by querying for the mixin.
 
 Disclaimer
 ----------
