@@ -21,6 +21,7 @@
                   value="${spamMailHostBlacklistedNotificationTemplatePath:/META-INF/mails/templates/hostBlacklisted.vm}"/>
         <property name="allowReadingWhenBlacklisted" value="${spamAllowReadMethodsWhenBlacklisted:true}"/>
         <property name="whitelistedHosts" value="${spamWhitelistedHosts:127.0.0.1,localhost}"/>
+        <property name="markSingleParentsOfTypes" value="${spamMarkSingleParentsOfTypes:jnt:topic}"/>
     </bean>
 
     <bean class="org.jahia.services.content.rules.ModuleGlobalObject">

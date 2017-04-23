@@ -132,6 +132,8 @@ public class SpamFilteringRuleService {
     private boolean allowReadingWhenBlacklisted = true;
     private String whitelistedHosts = "127.0.0.1,localhost";
 
+    private List<String> markSingleParentsOfTypes = new ArrayList<>();
+
     public SpamFilteringRuleService() {
         instance = this;
     }
@@ -204,6 +206,10 @@ public class SpamFilteringRuleService {
         this.whitelistedHosts = whitelistedHosts;
     }
 
+    public void setMarkSingleParentsOfTypes(List<String> markSingleParentsOfTypes) {
+        this.markSingleParentsOfTypes = markSingleParentsOfTypes;
+    }
+
     /**
      * Verifies the content of the node with anti-spam service and applies spam filtering (by assigning a special mixin).
      * 
@@ -262,6 +268,17 @@ public class SpamFilteringRuleService {
                     // is detected as spam -> add mixin
                     node.getSession().checkout(node);
                     node.addMixin(SPAM_DETECTED_MIXIN);
+
+                    JCRNodeWrapper parentNode = node.getParent();
+                    if (parentNode.getNodes().getSize() == 1) {
+                        for (String singleParentToMarkNodeType : markSingleParentsOfTypes) {
+                            if (parentNode.isNodeType(singleParentToMarkNodeType)) {
+                                logger.info("Found single parent node with node type " + singleParentToMarkNodeType + ", adding mixin " + SPAM_DETECTED_MIXIN + " to it too.");
+                                parentNode.getSession().checkout(parentNode);
+                                parentNode.addMixin(SPAM_DETECTED_MIXIN);
+                            }
+                        }
+                    }
                 }
                 if (maxSpamCount != null && httpServletRequest != null) {
                     HttpSession httpSession = httpServletRequest.getSession(false);
@@ -341,6 +358,18 @@ public class SpamFilteringRuleService {
                 // no longer spam -> remove mixin
                 node.getSession().checkout(node);
                 node.removeMixin(SPAM_DETECTED_MIXIN);
+
+                JCRNodeWrapper parentNode = node.getParent();
+                if (parentNode.getNodes().getSize() == 1) {
+                    for (String singleParentToMarkNodeType : markSingleParentsOfTypes) {
+                        if (parentNode.isNodeType(singleParentToMarkNodeType) && parentNode.isNodeType(SPAM_DETECTED_MIXIN)) {
+                            logger.info("Found single parent node with node type " + singleParentToMarkNodeType + ", removing mixin " + SPAM_DETECTED_MIXIN + " to it too.");
+                            parentNode.getSession().checkout(parentNode);
+                            parentNode.removeMixin(SPAM_DETECTED_MIXIN);
+                        }
+                    }
+                }
+
             }
             logger.info("Content of the node {} is{} detected as spam", node.getPath(),
                     !isSpam ? " not" : "");
