@@ -93,6 +93,10 @@ Simply deploy the module and then modify your jahia.properties file with the fol
     # requests. Note that these mappings are called before URL rewriting, so make sure they
     # are properly setup.
     spamBlacklistUrlMappings=/cms/*,*.do
+    
+    # If this property is set, then when a node is marked as spam, it will also mark the parents
+    # of the specified types ONLY if they are single parents.
+    markSingleParentsOfTypes=jnt:topic
 
 REST API
 --------
