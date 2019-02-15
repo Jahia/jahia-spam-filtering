@@ -80,11 +80,11 @@ import org.jahia.modules.spamfiltering.filters.SpamRenderFilter;
 import org.jahia.modules.spamfiltering.listeners.SpamServletRequestListener;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRPropertyWrapper;
+import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.content.nodetypes.ExtendedPropertyDefinition;
 import org.jahia.services.content.rules.AddedNodeFact;
 import org.jahia.services.content.rules.User;
 import org.jahia.services.mail.MailService;
-import org.jahia.services.usermanager.JahiaUser;
 import org.jahia.settings.SettingsBean;
 import org.jahia.utils.LanguageCodeConverters;
 import org.slf4j.Logger;
@@ -282,9 +282,9 @@ public class SpamFilteringRuleService {
                 }
                 if (maxSpamCount != null && httpServletRequest != null) {
                     HttpSession httpSession = httpServletRequest.getSession(false);
-                    JahiaUser jahiaUser = user.getJahiaUser();
+                    JCRUserNode jahiaUser = user.getUserNode();
                     if (httpSession != null && !"guest".equals(jahiaUser.getName()) && !jahiaUser.isRoot()) {
-                        String spamSessionsValue = jahiaUser.getProperty(SPAM_SESSIONS_PROPERTY_NAME);
+                        String spamSessionsValue = jahiaUser.getPropertyAsString(SPAM_SESSIONS_PROPERTY_NAME);
                         List<String> spamSessions = new ArrayList<String>();
                         if (spamSessionsValue != null) {
                             spamSessions.addAll(Arrays.asList(spamSessionsValue.split(",")));
@@ -312,8 +312,9 @@ public class SpamFilteringRuleService {
                         if (spamSessions.size() > 0) {
                             jahiaUser.setProperty(SPAM_SESSIONS_PROPERTY_NAME, StringUtils.join(spamSessions, ","));
                         } else {
-                            jahiaUser.removeProperty(SPAM_SESSIONS_PROPERTY_NAME);
+                            jahiaUser.setProperty(SPAM_SESSIONS_PROPERTY_NAME, (Value) null);
                         }
+                        jahiaUser.getSession().save();
 
                     } else {
                         // let's use IP-based blocking if we cannot use authenticated sessions
@@ -379,7 +380,7 @@ public class SpamFilteringRuleService {
         }
     }
 
-    private void sendAccountLockNotification(JCRNodeWrapper node, JahiaUser jahiaUser, HttpServletRequest httpServletRequest) throws RepositoryException {
+    private void sendAccountLockNotification(JCRNodeWrapper node, JCRUserNode jahiaUser, HttpServletRequest httpServletRequest) throws RepositoryException {
         // Prepare mail to be sent :
         String administratorEmail = emailTo == null ? mailService.getSettings().getTo() : emailTo;
 
@@ -414,7 +415,7 @@ public class SpamFilteringRuleService {
         }
     }
 
-    private void sendHostBlacklistingNotification(JCRNodeWrapper node, JahiaUser jahiaUser, HttpServletRequest httpServletRequest, HostStats hostStats) throws RepositoryException {
+    private void sendHostBlacklistingNotification(JCRNodeWrapper node, JCRUserNode jahiaUser, HttpServletRequest httpServletRequest, HostStats hostStats) throws RepositoryException {
         // Prepare mail to be sent :
         String administratorEmail = emailTo == null ? mailService.getSettings().getTo() : emailTo;
 
