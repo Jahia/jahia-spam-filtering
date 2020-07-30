@@ -1,4 +1,8 @@
-Spam filtering for Digital Factory
+<a href="https://www.jahia.com/">
+    <img src="https://www.jahia.com/modules/jahiacom-templates/images/jahia-3x.png" alt="Jahia logo" title="Jahia" align="right" height="60" />
+</a>
+
+Spam filtering for Jahia
 ==========================================
 
 This is a custom module for the Digital Factory platform
@@ -128,3 +132,6 @@ If you prefer to use the REST API calls directly, these map to the following URL
     DELETE $SERVER_HOST:$SERVER_PORT/modules/api/spamfiltering/v1/blacklisting/hosts
     Purges the list of blacklisted hosts
     
+## Open-Source
+
+This is an Open-Source module, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source).
